@@ -13,7 +13,7 @@ from templateRLagent import RLAgent
 
 # Set Gif-generation
 makeMovie = True
-directory = r"C:\Users\avvel\Autonomous-Truck-Sim\simRes.gif"
+directory = r"C:\Users\Hamza\ecopilot\simRes.gif"
 
 # System initialization 
 dt = 0.2                    # Simulation time step (Impacts traffic model accuracy)
