@@ -47,8 +47,8 @@ vehicleADV.costf(Q_ADV)
 L_ADV,Lf_ADV = vehicleADV.getCost()
 
 # ------------------ Problem definition ---------------------
-scenarioTrailADV = trailing(vehicleADV,N,lanes = 3)
-scenarioADV = simpleOvertake(vehicleADV,N,lanes = 3)
+scenarioTrailADV = trailing(vehicleADV,N,lanes = 2)
+scenarioADV = simpleOvertake(vehicleADV,N,lanes = 2)
 roadMin, roadMax, laneCenters = scenarioADV.getRoad()
     
 # -------------------- Traffic Set up -----------------------
@@ -60,15 +60,11 @@ vehicleADV.setInit([0,laneCenters[0]],vx_init_ego)
 # # Initilize surrounding traffic
 # Lanes [0,1,2] = [Middle,left,right]
 vx_ref_init = 50/3.6                     # (m/s)
-advVeh1 = vehicleSUMO(dt,N,[30,laneCenters[1]],[0.9*vx_ref_init,0],type = "normal")
-advVeh2 = vehicleSUMO(dt,N,[45,laneCenters[0]],[0.8*vx_ref_init,0],type = "passive")
-advVeh3 = vehicleSUMO(dt,N,[100,laneCenters[2]],[0.85*vx_ref_init,0],type = "normal")
-advVeh4 = vehicleSUMO(dt,N,[-20,laneCenters[1]],[1.2*vx_ref_init,0],type = "aggressive")
-advVeh5 = vehicleSUMO(dt,N,[40,laneCenters[2]],[1.2*vx_ref_init,0],type = "aggressive")
+advVeh1 = vehicleSUMO(dt,N,[30,laneCenters[0]],[0.9*vx_ref_init,0],type = "normal")
 
 
 # # Combine choosen vehicles in list
-vehList = [advVeh1,advVeh2]#,advVeh3,advVeh4,advVeh5
+vehList = [advVeh1]#,advVeh3,advVeh4,advVeh5
 
 # # Define traffic object
 leadWidth, leadLength = advVeh1.getSize()
@@ -114,7 +110,7 @@ decisionMaster.setDecisionCost(q_ADV_decision)                  # Sets cost of c
 # # -----------------------------------------------------------------
 # # -----------------------------------------------------------------
 
-tsim = 12        #200ÄNDRAT                # Total simulation time in seconds
+tsim = 50        #200ÄNDRAT                # Total simulation time in seconds
 Nsim = int(tsim/dt)
 tspan = np.linspace(0,tsim,Nsim)
 
