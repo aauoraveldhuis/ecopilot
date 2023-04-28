@@ -19,7 +19,7 @@ class trailing:
         self.lanes = lanes
         self.laneWidth = laneWidth
 
-        self.vmax = (60+5)/3.6
+        self.vmax = 100/3.6
 
         self.Time_headway = 0.5
 
