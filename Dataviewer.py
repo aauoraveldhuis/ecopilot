@@ -6,5 +6,9 @@ directory = r"C:\Users\Hamza\ecopilot"
 os.chdir(directory)
 
 df= pd.read_csv(r"C:\Users\Hamza\ecopilot\df.csv")
-print(df.max())
+df.dropna()
+
+
 print(df.min())
+print(df.max())
+

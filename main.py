@@ -18,19 +18,20 @@ directory = r"C:\Users\Hamza\ecopilot\simRes.gif"
 dir=r"C:\Users\Hamza\ecopilot\df.csv"
 
 #scenarion 
-scenario= 1 # välj scenario 1, 2, 3
+scenario= 2 # välj scenario 1, 2, 3
 sind= scenario -1 # ett index för scenarion
 
 
 # System initialization 
 dt = 0.2                    # Simulation time step (Impacts traffic model accuracy)
-f_controller = 5            # Controller update frequency, i.e updates at each t = dt*f_controller
-N =  12                 # MPC Horizon length
+f_controller = 1           # Controller update frequency, i.e updates at each t = dt*f_controller
+N = 25                     # MPC Horizon length
 
-ref_vx = 55/3.6             # Higway speed limit in (m/s)
+ref_vx = 70/3.6             # Higway speed limit in (m/s)
 
 # -------------------------- Initilize RL agent object ----------------------------------
 # The agent is feed to the decision maker, changing names requries changing troughout code base
+
 RL_Agent = RLAgent()
 decisionlist=['2','nan','nan']
 RL_Agent.decision=float(decisionlist[sind])
@@ -47,8 +48,7 @@ vehicleADV.integrator(int_opt,dt)
 F_x_ADV  = vehicleADV.getIntegrator()
 
 # Set Cost parameters
-
-Q_ADV = [0,40,300,5,5]                            # State cost, Entries in diagonal matrix
+Q_ADV = [0,40,3e2,5,5]                            # State cost, Entries in diagonal matrix
 R_ADV = [5,5]                                    # Input cost, Entries in diagonal matrix
 q_ADV_decision = 50
 
@@ -126,7 +126,7 @@ decisionMaster.setDecisionCost(q_ADV_decision)                  # Sets cost of c
 # # -----------------------------------------------------------------
 # # -----------------------------------------------------------------
 
-tsim = 100       #200ÄNDRAT                # Total simulation time in seconds
+tsim = 50                         # Total simulation time in seconds
 Nsim = int(tsim/dt)
 tspan = np.linspace(0,tsim,Nsim)
 
@@ -161,7 +161,7 @@ X_traffic[:,0,:] = traffic.getStates()
 testPred = traffic.prediction()
 
 feature_map = np.zeros((5,Nsim,Nveh+1))
-#df= pd.DataFrame(columns=['xpos','ypos','x_v', 'acc', 'theta 1', 'xdistance', 'ydistance'], index= list(range(0,Nsim)))
+
 df= pd.DataFrame(columns=['avstånd till framförvarande fordon (sek)','avstånd till fordon i närliggande fil','vinkel mellan last bil och släp', 'hastighet', 'avvikelse från mitten av filen', 'acceleration i sidled', 'acc'], index= list(range(0,Nsim)))
 # # Simulation loop
 for i in range(0,Nsim):
@@ -169,8 +169,6 @@ for i in range(0,Nsim):
     feature_map_i = createFeatureMatrix(vehicleADV,traffic)
     feature_map[:,i:] = feature_map_i
     RL_Agent.fetchVehicleFeatures(feature_map_i)
-    
-    
 
     # Get current traffic state
     x_lead[:,:] = traffic.prediction()[0,:,:].transpose()
@@ -180,7 +178,6 @@ for i in range(0,Nsim):
     if i % f_controller == 0:
         print("----------")
         print('Step: ', i)
-        
         decisionMaster.storeInput([x_iter,refxL_out,refxR_out,refxT_out,refu_out,x_lead,traffic_state])
 
         # Update reference based on current lane
@@ -199,20 +196,29 @@ for i in range(0,Nsim):
     traffic.update()
     vehicleADV.update(x_iter,u_iter)
 
-
-    'traffic.tryRespawn(x_iter[0])'
+    traffic.tryRespawn(x_iter[0])
     X_traffic[:,i,:] = traffic.getStates()
     X_traffic_ref[:,i,:] = traffic.getReference()
-
+     
     
-    # own dataframe for results
     
-    xdistance= X_traffic[0,i,0] - X[0,i]
-    ydistance= X_traffic[1,i,0] - X[1,i]
+    sx= []
+    ydistance= 1000
+    for v in traffic.vehicles:
+        
+        s= v.getState()
+        sx.append(abs(s[0]))
+        l= v.getLane()
+        if s[0] > X[0,i] and l == vehicleADV.lane:
+            xdistance= s[0] - X[0,i]
+        if min(sx)==abs(s[0]) and l!=vehicleADV.lane: 
+            ydistance= abs(s[1] - X[1,i])
+    
+    
     xd_sec= xdistance/X[2,i]
     ydelta= X[1,i] - laneCenters[0]
-    #df.iloc[i]= [X[0,i], X[1,i], X[2,i], U[0,i] ,X[3,i],xdistance,ydistance]
-    df.iloc[i] = [float(xd_sec), 0, abs(float(X[3,i])), float(X[2,i]), float(ydelta), 0, float(U[1,i])]
+    
+    df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), 0, float(U[1,i])]
 
 print("Simulation finished")
 
