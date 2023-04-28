@@ -217,8 +217,9 @@ for i in range(0,Nsim):
     
     xd_sec= xdistance/X[2,i]
     ydelta= X[1,i] - laneCenters[0]
+    accsidled= abs(U[1,i] * cos(U[0,i]))
     
-    df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), 0, float(U[1,i])]
+    df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), float(accsidled), float(U[1,i])]
 
 print("Simulation finished")
 
