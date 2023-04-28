@@ -178,3 +178,4 @@ class vehBicycleKinematic:
 
     def getEconsParams(self):
         return self.Cd, self.Area, self.Air_rho, self.mass, self.C_roll, self.r_whl
+        
