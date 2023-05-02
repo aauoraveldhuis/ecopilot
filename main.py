@@ -211,7 +211,7 @@ for i in range(0,Nsim):
         l= v.getLane()
         if s[0] > X[0,i] and l == vehicleADV.lane:
             xdistance= s[0] - X[0,i]
-        if min(sx)==abs(s[0]) and l!=vehicleADV.lane: 
+        if min(sx)==abs(s[0]) and l!=vehicleADV.lane and X[0,i]-(vehicleADV.length/2)<= s[0]+(v.length/2) and X[0,i]+(vehicleADV.length/2)>= s[0]-(v.length/2): 
             ydistance= abs(s[1] - X[1,i])
     
     
