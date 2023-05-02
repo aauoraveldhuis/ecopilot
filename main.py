@@ -72,7 +72,7 @@ vehicleADV.setInit([0,laneCenters[0]],vx_init_ego)
 # # Initilize surrounding traffic
 # Lanes [0,1,2] = [Middle,left,right]
 vx_ref_init = 55/3.6                     # (m/s)
-advVeh1 = vehicleSUMO(dt,N,[70,laneCenters[0]],[0.8*vx_ref_init,0],type = "normal")
+advVeh1 = vehicleSUMO(dt,N,[150,laneCenters[0]],[0.8*vx_ref_init,0],type = "normal")
 advVeh2 = vehicleSUMO(dt,N,[-20,laneCenters[1]],[0.9*vx_ref_init,0],type = "normal")
 advVeh3 = vehicleSUMO(dt,N,[100,laneCenters[1]],[0.9*vx_ref_init,0],type = "normal")
 
