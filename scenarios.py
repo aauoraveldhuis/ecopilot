@@ -104,7 +104,7 @@ class simpleOvertake:
 
         self.vmax = (60+5)/3.6
 
-        self.Time_headway = 0.5
+        self.Time_headway = 2
 
         # Ego vehicle dimensions
         self.egoWidth, self.egoLength,self.L_tract, self.L_trail = vehicle.getSize()
