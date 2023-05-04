@@ -18,12 +18,12 @@ axes[0].set_ylabel('Distance (sec)')
 
 df['hastighet'].plot(ax=axes[1])
 axes[1].set_title('Speed')
-axes[1].set_ylabel('Speed (units)')
+axes[1].set_ylabel('Speed (m/s)')
 
 df['acc'].plot(ax=axes[2])
 axes[2].set_title('Acceleration')
-axes[2].set_xlabel('Time')
-axes[2].set_ylabel('Acceleration (units)')
+axes[2].set_xlabel('Time (s)')
+axes[2].set_ylabel('Acceleration (m/s\u00B2) ')
 
 plt.tight_layout()  # Adjusts the spacing between subplots
 plt.show()
