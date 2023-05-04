@@ -21,7 +21,7 @@ class trailing:
 
         self.vmax = (60+5)/3.6
 
-        self.Time_headway = 0.5
+        self.Time_headway = 2
 
         self.min_distx = min_distx
         self.p = MX.sym('p',1,N+1)
