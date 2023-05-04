@@ -24,7 +24,7 @@ sind= scenario -1 # ett index för scenarion
 
 # System initialization 
 dt = 0.2                    # Simulation time step (Impacts traffic model accuracy)
-f_controller = 5            # Controller update frequency, i.e updates at each t = dt*f_controller
+f_controller = 1            # Controller update frequency, i.e updates at each t = dt*f_controller
 N =  12                 # MPC Horizon length
 
 ref_vx = 55/3.6             # Higway speed limit in (m/s)
@@ -126,7 +126,7 @@ decisionMaster.setDecisionCost(q_ADV_decision)                  # Sets cost of c
 # # -----------------------------------------------------------------
 # # -----------------------------------------------------------------
 
-tsim = 100       #200ÄNDRAT                # Total simulation time in seconds
+tsim = 50       #200ÄNDRAT                # Total simulation time in seconds
 Nsim = int(tsim/dt)
 tspan = np.linspace(0,tsim,Nsim)
 
