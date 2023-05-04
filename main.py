@@ -27,7 +27,7 @@ dt = 0.2                    # Simulation time step (Impacts traffic model accura
 f_controller = 1           # Controller update frequency, i.e updates at each t = dt*f_controller
 N = 25                     # MPC Horizon length
 
-ref_vx = 70/3.6             # Higway speed limit in (m/s)
+ref_vx = 55/3.6             # Higway speed limit in (m/s)
 
 # -------------------------- Initilize RL agent object ----------------------------------
 # The agent is feed to the decision maker, changing names requries changing troughout code base
@@ -204,6 +204,7 @@ for i in range(0,Nsim):
     
     sx= []
     ydistance= 1000
+    xdistance= np.nan
     for v in traffic.vehicles:
         
         s= v.getState()
