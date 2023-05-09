@@ -78,6 +78,7 @@ class makeController:
                                         self.traffic_sign[i,:], self.traffic_shift[i,:]))
 
         elif self.scenario.name == 'trailing':
+            T=self.scenario.Time_headway
             self.scenario.setEgoLane()
             self.scenario.getLeadVehicle(self.traffic)
             self.opti.subject_to(self.x[0,:] <= self.S(self.lead))
@@ -607,7 +608,7 @@ class makeDecisionMaster:
 
         return x_ok,u_ok, X
 
-    def getErrorCount(self):
+    def getErrorCount(self):    
         """
         Returns the amount of strange solutions encountered
         """
