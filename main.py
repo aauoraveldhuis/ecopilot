@@ -13,14 +13,15 @@ from helpers import *
 from templateRLagent import RLAgent
 
 # Set Gif-generation
-makeMovie = True
+makeMovie = False
 directory = r"C:\Users\Hamza\ecopilot\simRes.gif"
-dir=r"C:\Users\Hamza\ecopilot\df.csv"
+
 
 #scenarion 
 scenario= 3 # välj scenario 1, 2, 3
 sind= scenario -1 # ett index för scenarion
 
+dir=[r"C:\Users\Hamza\ecopilot\df1.csv" , r"C:\Users\Hamza\ecopilot\df2.csv" , r"C:\Users\Hamza\ecopilot\df3.csv"]
 
 # System initialization 
 dt = 0.2                    # Simulation time step (Impacts traffic model accuracy)
@@ -57,7 +58,7 @@ vehicleADV.costf(Q_ADV)
 L_ADV,Lf_ADV = vehicleADV.getCost()
 
 # ------------------ Problem definition ---------------------
-min_dist=20
+min_dist=0
 porblemlist=[trailing(vehicleADV,N,min_distx=min_dist,lanes = 2,v_legal = ref_vx).getRoad(),simpleOvertake(vehicleADV,N,min_distx=min_dist,lanes = 2,v_legal = ref_vx).getRoad(),simpleOvertake(vehicleADV,N,min_distx=min_dist,lanes = 2,v_legal = ref_vx).getRoad()]
 scenarioTrailADV = trailing(vehicleADV,N,min_distx=min_dist,lanes = 2,v_legal = ref_vx)
 scenarioADV = simpleOvertake(vehicleADV,N,min_distx=min_dist,lanes = 2,v_legal = ref_vx)
@@ -72,9 +73,9 @@ vehicleADV.setInit([0,laneCenters[0]],vx_init_ego)
 # # Initilize surrounding traffic
 # Lanes [0,1,2] = [Middle,left,right]
 vx_ref_init = 55/3.6                     # (m/s)
-advVeh1 = vehicleSUMO(dt,N,[120,laneCenters[0]],[0.75*vx_ref_init,0],type = "normal")
+advVeh1 = vehicleSUMO(dt,N,[80,laneCenters[0]],[0.75*vx_ref_init,0],type = "normal")
 advVeh2 = vehicleSUMO(dt,N,[0,laneCenters[1]],[0.75*vx_ref_init,0],type = "normal")
-advVeh3 = vehicleSUMO(dt,N,[250,laneCenters[1]],[0.75*vx_ref_init,0],type = "normal")
+advVeh3 = vehicleSUMO(dt,N,[160,laneCenters[1]],[0.75*vx_ref_init,0],type = "normal")
 
 
 
@@ -126,7 +127,7 @@ decisionMaster.setDecisionCost(q_ADV_decision)                  # Sets cost of c
 # # -----------------------------------------------------------------
 # # -----------------------------------------------------------------
 
-tsim = 100                         # Total simulation time in seconds
+tsim = 50                         # Total simulation time in seconds
 Nsim = int(tsim/dt)
 tspan = np.linspace(0,tsim,Nsim)
 
@@ -161,6 +162,7 @@ X_traffic[:,0,:] = traffic.getStates()
 testPred = traffic.prediction()
 
 feature_map = np.zeros((5,Nsim,Nveh+1))
+
 
 df= pd.DataFrame(columns=['avstånd till framförvarande fordon (sek)','avstånd till fordon i närliggande fil','vinkel mellan last bil och släp', 'hastighet', 'avvikelse från mitten av filen', 'acceleration i sidled', 'acc'], index= list(range(0,Nsim)))
 # # Simulation loop
@@ -204,6 +206,7 @@ for i in range(0,Nsim):
     
     sx= []
     ydistance= 1000
+    xdistance= np.nan
     for v in traffic.vehicles:
         
         s= v.getState()
@@ -211,13 +214,12 @@ for i in range(0,Nsim):
         l= v.getLane()
         if s[0] > X[0,i] and l == vehicleADV.lane:
             xdistance= s[0] - X[0,i]
-        if min(sx)==abs(s[0]) and l!=vehicleADV.lane: 
+        if min(sx)==abs(s[0]) and l!=vehicleADV.lane and X[0,i]-(vehicleADV.length/2)<= s[0]+(v.length/2) and X[0,i]+(vehicleADV.length/2)>= s[0]-(v.length/2): 
             ydistance= abs(s[1] - X[1,i])
-    
     
     xd_sec= xdistance/X[2,i]
     ydelta= X[1,i] - laneCenters[0]
-    accsidled= abs(U[1,i] * sin(U[0,i]))
+    accsidled= abs(U[1,i] * sin(U[0,i]))    
     
     df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), float(accsidled), float(U[1,i])]
 
@@ -233,10 +235,10 @@ i_crit = i
 
 # Creates animation of traffic scenario
 
+df.to_csv(path_or_buf=dir[sind])
 
 if makeMovie:
     borvePictures(X,X_traffic,X_traffic_ref,vehList,X_pred,vehicleADV,scenarioADV,traffic,i_crit,f_controller,directory)
 
 features2CSV(feature_map,Nveh,Nsim)
 
-df.to_csv(path_or_buf=dir)
