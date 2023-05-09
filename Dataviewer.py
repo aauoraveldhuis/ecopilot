@@ -8,7 +8,7 @@ import numpy as np
 directory = r"C:\Users\Hamza\ecopilot"
 os.chdir(directory)
 
-df= pd.read_csv(r"C:\Users\Hamza\ecopilot\df1.csv")
+df= pd.read_csv(r"C:\Users\Hamza\ecopilot\df2.csv")
 df.dropna()
 print(df.max())
 print(df.min())
