@@ -2,6 +2,12 @@ from casadi import *
 import numpy as np
 from matplotlib import pyplot as plt
 from helpers import *
+#from acados_template import AcadosOcp
+from acados import *
+import sys
+#sys.path.append('/mnt/c/Users/Onedrive/Dokument/Github/ecopilotacados/ACADOS/acados/interfaces/acados_template/AcadosOcp')
+sys.path.append('/mnt/c/acadosinstallation/acados/interfaces/acados_template/AcadosOcp')
+
 
 class makeController:
     """
@@ -51,54 +57,60 @@ class makeController:
         s_opts = dict(print_level=0)
         self.opti.solver(self.opts["solver"], p_opts,s_opts)
 
-    def setStateEqconstraints(self):
-        # # Set equality state Constraints
+    # Defined for ACADOS 
+    def setStateEqconstraints(self, ocp):
+    # Set equality state constraints
         for i in range(self.N):
-            self.opti.subject_to(self.x[:,i+1] == self.F_x(self.x[:,i],self.u[:,i]))
+            ocp.constraints.set_rhs('dyn_constr', self.F_x(self.x[:,i],self.u[:,i]))
+            ocp.constraints.set('dyn_constr', i, self.x[:,i], i+1)
 
-        self.opti.subject_to(self.x[:,0] == self.x0)
+    #ocp.constraints.set_rhs('dyn_constr', self.x0)
+    #ocp.constraints.set('dyn_constr', 0, self.x0, 0)
 
-    def setInEqConstraints(self):
-        self.opti.subject_to(self.opti.bounded(self.roadMin+self.vehWidth/2,self.x[1,:],self.roadMax-self.vehWidth/2))
+def setInEqConstraints(self, ocp):
+    # Set inequality constraints
+    ocp.bounds.set('lbx', self.roadMin+self.vehWidth/2, 1)
+    ocp.bounds.set('ubx', self.roadMax-self.vehWidth/2, 1)
+    lbu, ubu = self.vehicle.uConstraints()
+    lbx, ubx = self.vehicle.xConstraints()
+    ocp.bounds.set('lbx', lbx, 0)
+    ocp.bounds.set('ubx', ubx, 0)
+    ocp.bounds.set('lbu', lbu)
+    ocp.bounds.set('ubu', ubu)
+    ocp.bounds.set('lbx', 0, 2)
+    ocp.bounds.set('ubx', self.scenario.vmax, 2)
 
-        lbu,ubu = self.vehicle.uConstraints()
-        lbx,ubx = self.vehicle.xConstraints()
-        self.opti.subject_to(self.opti.bounded(lbu,self.u,ubu))
-        self.opti.subject_to(self.opti.bounded(lbx,self.x,ubx))
-
-        self.opti.subject_to(self.opti.bounded(0,self.x[2,:],self.scenario.vmax))
-    
-    def setTrafficConstraints(self):
-        self.S = self.scenario.constraint(self.traffic,self.opts)
-
-        if self.scenario.name == 'simpleOvertake':
-            for i in range(self.Nveh):
-                self.opti.subject_to(self.traffic_flip[i,:] * self.x[1,:] 
-                                    >= self.traffic_flip[i,:] * self.S[i](self.x[0,:], self.traffic_x[i,:], self.traffic_y[i,:],
+def setTrafficConstraints(self, ocp):
+    # Set traffic constraints
+    S = self.scenario.constraint(self.traffic, self.opts)
+    if self.scenario.name == 'simpleOvertake':
+        for i in range(self.Nveh):
+            ocp.constraints.set('bgu', self.traffic_flip[i,:] * self.x[1,:] - 
+                                 self.traffic_flip[i,:] * S[i](self.x[0,:], self.traffic_x[i,:], self.traffic_y[i,:],
                                         self.traffic_sign[i,:], self.traffic_shift[i,:]))
+    elif self.scenario.name == 'trailing':
+        self.scenario.setEgoLane()
+        self.scenario.getLeadVehicle(self.traffic)
+        ocp.constraints.set('bgu', self.S(self.lead) - self.x[0,:])
 
-        elif self.scenario.name == 'trailing':
-            T=self.scenario.Time_headway
-            self.scenario.setEgoLane()
-            self.scenario.getLeadVehicle(self.traffic)
-            self.opti.subject_to(self.x[0,:] <= self.S(self.lead))
+def setCost(self, ocp):
+    # Set cost function
+    L, Lf = self.vehicle.getCost()
+    ocp.cost.cost_type = 'NONLINEAR_LS'
+    ocp.cost.cost_type_e = 'NONLINEAR_LS'
+    ocp.cost.Vx = np.diag(L)
+    ocp.cost.Vx_e = np.diag(Lf)
+    ocp.cost.yref = np.concatenate([self.refx, self.refu])
+    ocp.cost.yref_e = np.concatenate([self.refx[:, -1], np.zeros(self.vehicle.m)])
+    
+def setController(self):
+    # Set up OCP
+    ocp = AcadosOcp()
+    ocp.model = self.getModel
 
-    def setCost(self):
-        L,Lf = self.vehicle.getCost()
-        self.opti.minimize(getTotalCost(L,Lf,self.x,self.u,self.refx,self.refu,self.N))
-
-    def setController(self):
-        """
-        Sets all constraints and cost
-        """
-        # Constraints
-        self.setStateEqconstraints()
-        self.setInEqConstraints()
-        self.setTrafficConstraints()
-
-        # Cost
-        self.setCost()
-
+    # Cost
+    self.setCost()
+#End acados 
     def getFunction(self):
         if self.opts["version"] == "trailing":
             return self.opti.to_function('MPC',[self.x0,self.refx,self.refu,self.lead],[self.x,self.u],
@@ -608,7 +620,7 @@ class makeDecisionMaster:
 
         return x_ok,u_ok, X
 
-    def getErrorCount(self):    
+    def getErrorCount(self):
         """
         Returns the amount of strange solutions encountered
         """
