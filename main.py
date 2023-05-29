@@ -9,11 +9,12 @@ from scenarios import trailing, simpleOvertake
 from traffic import vehicleSUMO, combinedTraffic
 from controllers import makeController, makeDecisionMaster
 from helpers import *
+import time
 
 from templateRLagent import RLAgent
 
 # Set Gif-generation
-makeMovie = False
+makeMovie = True
 directory = r"C:\Users\Hamza\ecopilot\simRes.gif"
 
 
@@ -29,6 +30,7 @@ f_controller = 1           # Controller update frequency, i.e updates at each t 
 N = 30                  # MPC Horizon length
 
 ref_vx = 60/3.6             # Higway speed limit in (m/s)
+st = time.time()
 
 # -------------------------- Initilize RL agent object ----------------------------------
 # The agent is feed to the decision maker, changing names requries changing troughout code base
@@ -202,6 +204,7 @@ for i in range(0,Nsim):
     X_traffic[:,i,:] = traffic.getStates()
     X_traffic_ref[:,i,:] = traffic.getReference()
      
+    ay= (((X[1,i]-X[1,i-1])/dt)-((X[1,i-1]-X[1,i-2])/dt))/dt
     
     
     sx= []
@@ -219,11 +222,16 @@ for i in range(0,Nsim):
     
     xd_sec= xdistance/X[2,i]
     ydelta= X[1,i] - laneCenters[0]
+
+    
     accsidled= abs(U[1,i] * sin(U[0,i]))    
     
-    df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), float(accsidled), float(U[1,i])]
+    df.iloc[i] = [float(xd_sec), float(ydistance), abs(float(X[3,i])), float(X[2,i]), float(ydelta), float(ay), float(U[1,i])]
 
+et = time.time()
 print("Simulation finished")
+elapsed_time = et - st
+print('Execution time:', elapsed_time, 'seconds')
 
 i_crit = i
 

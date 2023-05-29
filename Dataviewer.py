@@ -9,7 +9,9 @@ directory = r"C:\Users\Hamza\ecopilot"
 os.chdir(directory)
 
 df= pd.read_csv(r"C:\Users\Hamza\ecopilot\df1.csv")
+df.loc[0:2, 'acceleration i sidled'] = None
 df.dropna()
+
 print(df.max())
 print(df.min())
 
